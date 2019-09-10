@@ -1,0 +1,100 @@
+<script type="text/javascript">
+    RED.nodes.registerType('zinguo-configurator',{
+        category: 'config',
+        defaults: {
+            name : { value:"默认账号",required:true},
+            phone : { value:"", required:true},
+            password : { value:"", required:true},
+            deviceList: {value:[{ mac:"", desc:"", model:"zinguo_b2"}]},
+        },
+        label: function() {
+            return this.name;
+        },
+
+        oneditprepare: function() {
+            var node = this;
+
+            var tw_zinguo_b2 = {value:"zinguo_b2", label:"zinguo b2", icon:"icons/node-red-contrib-zinguo/b2.png"};
+
+            $("#node-config-input-devices").css('min-height','250px').css('min-width','450px').editableList({
+                addItem: function(container, i, device) {
+                    if (!device.hasOwnProperty('model')) {
+                        device.model = 'zinguo_b2';
+                    }
+                    console.log(device)
+                    var row = $('<div/>').appendTo(container);
+
+                    $('<label/>',{for:"node-config-input-mac-"+i, style:"margin-left: 3px; width: 15px;vertical-align:middle"}).appendTo(row);
+                    var mac = $('<input/>',{id:"node-config-input-mac-"+i,type:"text", placeholder:"mac", style:"width:auto;vertical-align:top"}).appendTo(row);
+                    mac.typedInput({
+                        default: 'zinguo_b2',
+                        types: [tw_zinguo_b2]
+                    });
+
+                    $('<label/>',{for:"node-config-input-desc-"+i, style:"margin-left: 7px; width: 20px;vertical-align:middle"}).html('<i class="fa fa-pencil-square-o"></i>').appendTo(row);
+                    var desc = $('<input/>',{id:"node-config-input-desc-"+i, type:"text", placeholder:"description", style:"width:auto;vertical-align:top"}).appendTo(row);
+
+                    mac.typedInput('value', device.mac);
+                    mac.typedInput('type', device.model);
+                    desc.val(device.desc);
+                },
+                resize: function() {
+                },
+                removeItem: function(opt) {
+                },
+                sortItems: function(rules) {
+                },
+                sortable: true,
+                removable: true
+            });
+
+            for (var i=0;i<this.deviceList.length;i++) {
+                var device = this.deviceList[i];
+                $("#node-config-input-devices").editableList('addItem', device);
+            }
+            var listHeight = $("#node-config-input-devices").editableList('items').size() * 51 + 50;
+            $("#node-config-input-devices").editableList('height', listHeight);
+        },
+        oneditsave: function() {
+            var devices = $("#node-config-input-devices").editableList('items');
+            var node = this;
+            var devicesArray = [];
+            devices.each(function(i) {
+                var deviceElement = $(this);
+                var mac = deviceElement.find("#node-config-input-mac-"+i).val();
+                var desc = deviceElement.find("#node-config-input-desc-"+i).val();
+                var model = deviceElement.find("#node-config-input-mac-"+i).typedInput('type');
+                var d = {};
+                d['mac']=mac;
+                d['desc']=desc;
+                d['model']=model;
+                devicesArray.push(d);
+            });
+            node.deviceList = devicesArray;
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="zinguo-configurator">
+    <div class="form-row">
+        <label for="node-config-input-name"><i class="icon-bookmark"></i> 默认名称</label>
+        <input type="text" id="node-config-input-name">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-phone"><i class="icon-bookmark"></i>手机号码 </label>
+        <input type="text" id="node-config-input-phone">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-password"><i class="icon-bookmark"></i>密码</label>
+        <input type="text" id="node-config-input-password">
+    </div>
+    <div class="form-row node-config-input-devices">
+        <ol id="node-config-input-devices"></ol>
+    </div>
+   
+</script>
+
+<script type="text/x-red" data-help-name="zinguo-configurator">
+    <p>峥果智能的账号信息</p>
+    <p>分享节点的时候一定要注意,要修改一下这里的配置,不然就暴露了</p>
+</script>

@@ -1,0 +1,135 @@
+<script type="text/javascript">
+    RED.nodes.registerType('zinguo-control',{
+        category: 'zinguo',
+        color: '#a6bbcf',
+        defaults: {
+            server: {value:"", type:"zinguo-configurator"},
+            name: {value:""}, 
+            mac: {value: "", required: true},
+            s1: { value: false },
+            s2: { value: false },
+            s3: { value: false },
+            s4: { value: false },
+            s5: { value: false },
+            s6: { value: false },
+        },
+        inputs:1,
+        outputs:2,
+        icon: "login_1.png",
+        label: function() {
+            return this.name|| "设备";
+        },
+        
+        oneditprepare: function() {
+            var node = this;
+
+            if(node.mac) {
+                $('#node-input-mac').val(node.mac);
+            }
+
+            $("#node-input-action").change(function () {
+                var id = $("#node-input-action option:selected").val();
+                if (id != 'setState') {
+                    $(".mp1socket").hide();
+                    $(".setState").hide();
+                }
+                else {
+                    $(".mp1socket").show();
+                    $(".setState").show();
+                }
+            });
+
+            function changeGateway(model) {
+                var configNodeID = $('#node-input-server').val();
+                if (configNodeID) {
+                    var configNode = RED.nodes.node(configNodeID);
+                    if(configNode) {
+                        $('#node-input-mac').empty();
+                        for (key in configNode.deviceList) {
+                            var device = configNode.deviceList[key];
+                            if (device.model === model) {
+                                $('#node-input-mac').append('<option value="' + device.mac + '">' + device.desc + '</option>');
+                            }
+                        }
+                        if(node.mac) {
+                            $('#node-input-mac option[value="' + node.mac + '"]').prop('selected', true);
+                        }
+                    }
+                }
+            }
+
+            $("#node-input-mac").change(function () {
+                if(!this.name) {
+                    $("#node-input-name").val($('#node-input-mac option:selected').text());
+                }
+            });
+            $("#node-input-server").change(function () {
+                changeGateway("zinguo_b2");
+            });
+        },
+        oneditsave: function() {
+            var node = this;
+            node.mac = $("#node-input-mac").val();
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="zinguo-control">
+    <div class="form-row">
+        <label for="node-input-server"><i class="icon-tag"></i> Server</label>
+        <input type="text" id="node-input-server" placeholder="Server">
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-bookmark"></i> 默认名称</label>
+        <input type="text" id="node-input-name">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-mac"><i class="icon-tag"></i> Device</label>
+        <select id="node-input-mac" placeholder="zinguo device"></select>
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-action"><i class="fa fa-code-fork"></i>操作</label>
+        <select id="node-input-action" style="width:70%">
+            <option value="_msg_" lable="action_msg">action_msg</option>
+            <option value="setState" lable="ction_setState">ction_setState</option>
+        </select>
+    </div>
+    <div class="form-row mp1socket">
+        <table>
+            <tr>
+                <td><label><i class="fa fa-plug"></i>开关</label></td>
+                <td>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>风暖1</th>
+                                <th>风暖1</th>
+                                <th>吹风</th>
+                                <th>照明</th>
+                                <th>换气</th>
+                                <th>全关</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input id="node-input-s1" type='checkbox' /></td>
+                                <td><input id="node-input-s2" type='checkbox' /></td>
+                                <td><input id="node-input-s3" type='checkbox' /></td>
+                                <td><input id="node-input-s4" type='checkbox' /></td>
+                                <td><input id="node-input-s5" type='checkbox' /></td>
+                                <td><input id="node-input-s6" type='checkbox' /></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="zinguo-control">
+    <p>峥果智能浴霸控制节点</p>
+    <p></p>
+</script>
